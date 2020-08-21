@@ -1,6 +1,10 @@
 package com.company;
 
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 public class MoneyPlanner extends JPanel implements ActionListener {
 
@@ -25,6 +30,8 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     JPanel date_pan;
     JPanel add_submit_pan;
 
+    JPanel inputPanel;
+
     JTextArea incomeArea;
     JTextArea expenseArea;
 
@@ -32,7 +39,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     JTextField totalExpenseField;
     JTextField summaryField;
 
-    JTable inputTable;
+    JTableHeader tableHeader;
 
 
     HashMap<String,HashMap<String, Vector<String[]>>> dataManagement;
@@ -136,6 +143,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         //left panel
         leftPanelTop = new JPanel();
         leftPanelBottom = new JPanel();
+        leftPanelBottom.setLayout(new GridLayout(8,1));
         scrollPane = new JScrollPane();
 
         //generate date management tools( hashmap and vector)
@@ -144,7 +152,9 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         dataVal = new Vector<>();
 
         //generate table for input data.
-        inputTable = new JTable(,colName);
+
+
+
 
         //setting layout and adding the panels into main panel.
         setLayout(new GridLayout(1, 2, 20, 0));
@@ -334,37 +344,67 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     }
 
     void addInputPanel(LocalDate selectedDate){
+        JPanel inputPanel = new JPanel();
         Font font = new Font("",Font.BOLD,15);
         dataVal = new Vector<>();
         //setting choice1
         choice1 = new JComboBox<>(ieChoice);
-        choice1.addActionListener(this);
+        choice1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                    refresh(inputPanel);
+                }
+           });
         choice1.setFont(font);
-        add(choice1);
+        inputPanel.add(choice1);
 
         //setting choice 2
         choice2 = new JComboBox<String>(incomeList);
         choice2.setFont(font);
-        add(choice2);
+        inputPanel.add(choice2);
 
         //setting text field
         textField = new JTextField(15);
         textField.setFont(font);
-        add(textField);
+        inputPanel.add(textField);
 
         //setting save button
         saveBtn = new JButton("Save");
         saveBtn.setFont(font);
-        saveBtn.addActionListener(this);
-        add(saveBtn);
+        saveBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String patternString = "[1-9][0-9]+";
+                if(textField.getText().equals("") || !Pattern.matches(patternString,textField.getText())){
+                    JOptionPane.showMessageDialog(null, "Enter number in text field.");
+                }else{
+                    System.out.println("good!");
+                    dataSet(selectedDate);
+                }
+            }
+        });
+        inputPanel.add(saveBtn);
 
         //setting delete button
         deleteBtn = new JButton("x");
         deleteBtn.setFont(font);
-        deleteBtn.addActionListener(this);
-        add(deleteBtn);
+        deleteBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteInputPanel(inputPanel);
+            }
+        });
+        inputPanel.add(deleteBtn);
 
+        leftPanelBottom.add(inputPanel);
     }
+
+    void deleteInputPanel(JPanel panel){
+        panel.removeAll();
+        leftPanelBottom.remove(panel);
+        leftPanelBottom.updateUI();
+    }
+
 
     void dataSet(LocalDate selectedDate){
         //setting data key
@@ -381,9 +421,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         savedData.put(key, dataVal);
 
         //for checking the saved data
-        for (String str : value) {
-            System.out.print(str + " ");
-        }
+
         System.out.println("");
         System.out.println("vector size: " + dataVal.size());
         System.out.println("Vector info: key=" + savedData.keySet() + ", size: " + savedData.get(key).size());
@@ -393,21 +431,24 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         }
     }
 
-    void refresh(){
-        remove(3);
-        remove(2);
-        remove(1);
+    void deleteData(LocalDate selectedDate){
+
+    }
+    void refresh(JPanel panel){
+        panel.remove(3);
+        panel.remove(2);
+        panel.remove(1);
         if(choice1.getSelectedItem().equals("Income")) {
             choice2 = new JComboBox<>(incomeList);
         }else {
             choice2 = new JComboBox<String>(expenseList);
         }
-        choice2.setFont(font);
-        add(choice2);
-        add(textField);
-        add(saveBtn);
-        add(deleteBtn);
-        updateUI();
+        choice2.setFont(new Font("",Font.BOLD,15));
+        panel.add(choice2);
+        panel.add(textField);
+        panel.add(saveBtn);
+        panel.add(deleteBtn);
+        panel.updateUI();
         System.out.println("refresh works");
     }
 
@@ -420,7 +461,8 @@ public class MoneyPlanner extends JPanel implements ActionListener {
                 nextMonth();
             } else if (e.getSource().equals(addBtn)) {
                 System.out.println("add button clicked");
-
+                addInputPanel(selectedDate);
+                leftPanelBottom.updateUI();
 
             } else if (e.getSource().equals(submitBtn)) {
                 System.out.println("submit button clicked");
@@ -433,15 +475,6 @@ public class MoneyPlanner extends JPanel implements ActionListener {
                 leftPanelTop.removeAll();
                 calendar(selectedDate);
                 leftPanelTop.updateUI();
-            }else if(e.getSource().equals(choice1)) {
-                System.out.println("choice1 action works");
-                refresh();
-
-            }else if(e.getSource().equals(deleteBtn)) {
-                removeAll();
-                updateUI();
-            }else if (e.getSource().equals(saveBtn)){
-                dataSet(selectedDate);
             }
     }
 }
