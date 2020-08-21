@@ -42,7 +42,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     JTableHeader tableHeader;
 
 
-    HashMap<String,HashMap<String, Vector<String[]>>> dataManagement;
+//    HashMap<String,HashMap<String, Vector<String[]>>> dataManagement;
     HashMap<String, Vector<String[]>> savedData;
 
     Vector<String[]> dataVal;
@@ -147,7 +147,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         scrollPane = new JScrollPane();
 
         //generate date management tools( hashmap and vector)
-        dataManagement = new HashMap<>();
+//        dataManagement = new HashMap<>();
         savedData = new HashMap<>();
         dataVal = new Vector<>();
 
@@ -346,7 +346,6 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     void addInputPanel(LocalDate selectedDate){
         JPanel inputPanel = new JPanel();
         Font font = new Font("",Font.BOLD,15);
-        dataVal = new Vector<>();
         //setting choice1
         choice1 = new JComboBox<>(ieChoice);
         choice1.addActionListener(new ActionListener() {
@@ -374,9 +373,11 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         saveBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String patternString = "[1-9][0-9]+";
+                String patternString = "^[0-9]*$";
                 if(textField.getText().equals("") || !Pattern.matches(patternString,textField.getText())){
+                    System.out.println(Pattern.matches(patternString,textField.getText()));
                     JOptionPane.showMessageDialog(null, "Enter number in text field.");
+                    textField.setText("");
                 }else{
                     System.out.println("good!");
                     dataSet(selectedDate);
@@ -418,20 +419,21 @@ public class MoneyPlanner extends JPanel implements ActionListener {
 
         dataVal.add(value);
 
-        savedData.put(key, dataVal);
-
         //for checking the saved data
 
         System.out.println("");
         System.out.println("vector size: " + dataVal.size());
-        System.out.println("Vector info: key=" + savedData.keySet() + ", size: " + savedData.get(key).size());
 
-        for (int i = 0; i < savedData.get(key).size(); i++) {
-            System.out.println(Arrays.toString(savedData.get(key).get(i)));
-        }
     }
 
     void deleteData(LocalDate selectedDate){
+        //setting data key
+        String key = selectedDate.getYear() + "," + selectedDate.getMonth().getValue() + "," + selectedDate.getDayOfMonth();
+
+        String[] value = new String[3];
+        value[0] = choice1.getSelectedItem().toString();
+        value[1] = choice2.getSelectedItem().toString();
+        value[2] = textField.getText();
 
     }
     void refresh(JPanel panel){
@@ -467,7 +469,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
             } else if (e.getSource().equals(submitBtn)) {
                 System.out.println("submit button clicked");
                 String key = selectedDate.getYear() + "," + selectedDate.getMonth().getValue() + "," + selectedDate.getDayOfMonth();
-                dataManagement.put(key, savedData);
+                savedData.put(key, dataVal);
 
 //            System.out.println(dataManagement.get(key).keySet() + dataManagement.get(key).values().toString());
             }else if(e.getSource().equals(todayBtn)){
