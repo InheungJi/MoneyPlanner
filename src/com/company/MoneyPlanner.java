@@ -53,6 +53,8 @@ public class MoneyPlanner extends JPanel implements ActionListener {
     JLabel incomeLabel;
     JLabel expenseLabel;
     JLabel summaryLabel;
+    JLabel incomeTotalLabel;
+    JLabel expenseTotalLabel;
 
     Vector<String> getColName = new Vector<>(){{
         add("Income/Expense");
@@ -134,15 +136,11 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         add("Car");
         add("Food");
         add("Clothes");
-        add("Rent/Morgage");
-        add("Maintance");
+        add("Rent/Mortgage");
+        add("Maintenance");
         add("Phone");
         add("Internet");
     }};
-
-    String[] colName = {" ", "Income/Expense", "Category", "Amount of Money"};
-
-
 
 
     MoneyPlanner(){
@@ -193,22 +191,37 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         summaryLabel.setFont(new Font("",Font.BOLD,22));
         summaryField = new JTextField(20);
 
-        incomeTable = new JTable(null,getColName);
-        expenseTable = new JTable(null,getColName);
+
+        DefaultTableModel model = new DefaultTableModel(getColName,1);
+
+        incomeTable = new JTable(model);
+        scrollPane.setViewportView(incomeTable);
+        expenseTable = new JTable(model);
+        scrollPane.setViewportView(expenseTable);
 
         incomeLabel = new JLabel("Income Section: ");
         incomeLabel.setFont(new Font("",Font.BOLD,20));
         expenseLabel = new JLabel("Expense Section: ");
         expenseLabel.setFont(new Font("",Font.BOLD,20));
+
         incomeTotalPanel = new JPanel();
+        incomeTotalLabel = new JLabel("Total: ");
+        totalIncomeField = new JTextField(20);
+        incomeTotalPanel.add(incomeTotalLabel);
+        incomeTotalPanel.add(totalIncomeField);
+
         expenseTotalPanel = new JPanel();
+        expenseTotalLabel = new JLabel("Total: ");
+        totalExpenseField = new JTextField(20);
+        expenseTotalPanel.add(expenseTotalLabel);
+        expenseTotalPanel.add(totalExpenseField);
 
         rightPanelIncome.add(incomeLabel, BorderLayout.NORTH);
-        rightPanelIncome.add(incomeTable, BorderLayout.CENTER);
+        rightPanelIncome.add(new JScrollPane(incomeTable), BorderLayout.CENTER);
         rightPanelIncome.add(incomeTotalPanel, BorderLayout.SOUTH);
 
         rightPanelExpense.add(expenseLabel, BorderLayout.NORTH);
-        rightPanelExpense.add(expenseTable, BorderLayout.CENTER);
+        rightPanelExpense.add(new JScrollPane(expenseTable), BorderLayout.CENTER);
         rightPanelExpense.add(expenseTotalPanel, BorderLayout.SOUTH);
 
         summaryPanel.add(summaryLabel,BorderLayout.WEST);
