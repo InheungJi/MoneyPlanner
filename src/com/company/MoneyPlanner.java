@@ -17,10 +17,17 @@ import java.util.regex.Pattern;
 public class MoneyPlanner extends JPanel implements ActionListener {
 
     JPanel leftPanel;
-    JPanel rightPanel;
     JPanel leftPanelTop;
     JPanel leftPanelBottom;
     JScrollPane scrollPane;
+
+    JPanel rightPanel;
+    JPanel rightPanelIncome;
+    JPanel rightPanelExpense;
+    JPanel incomeTotalPanel;
+    JPanel expenseTotalPanel;
+
+    JPanel summaryPanel;
 
     JPanel calendarPanel;
     JPanel calendarTopPanel;
@@ -32,14 +39,32 @@ public class MoneyPlanner extends JPanel implements ActionListener {
 
     JPanel inputPanel;
 
-    JTextArea incomeArea;
-    JTextArea expenseArea;
+//    JTextArea incomeArea;
+//    JTextArea expenseArea;
 
     JTextField totalIncomeField;
     JTextField totalExpenseField;
     JTextField summaryField;
 
-    JTableHeader tableHeader;
+    JTable incomeTable;
+    JTable expenseTable;
+    JTable summaryTable;
+
+    JLabel incomeLabel;
+    JLabel expenseLabel;
+    JLabel summaryLabel;
+
+    Vector<String> getColName = new Vector<>(){{
+        add("Income/Expense");
+        add("Category");
+        add("Amount of Money");
+    }};
+
+    Vector<String> getSummaryColName = new Vector<>(){{
+        add("Total Income");
+        add("Total Expense");
+        add("Asset");
+    }};
 
 
 //    HashMap<String,HashMap<String, Vector<String[]>>> dataManagement;
@@ -131,16 +156,17 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         now_year = selectedDate.getYear();
         now_month = selectedDate.getMonthValue();
         now_day = selectedDate.getDayOfMonth();
+        String key = now_year+","+now_month+","+now_day;
 
         //setting font
         font = new Font("", Font.BOLD, 25);
         day_font = new Font("", Font.BOLD, 23);
 
     //generate each panels
-        leftPanel = new JPanel();
-        rightPanel = new JPanel();
 
         //left panel
+        leftPanel = new JPanel();
+
         leftPanelTop = new JPanel();
         leftPanelBottom = new JPanel();
         leftPanelBottom.setLayout(new GridLayout(8,1));
@@ -151,10 +177,46 @@ public class MoneyPlanner extends JPanel implements ActionListener {
         savedData = new HashMap<>();
         dataVal = new Vector<>();
 
-        //generate table for input data.
+        //generate table for right panel.
+        rightPanel = new JPanel();
+        rightPanel.setLayout(new GridLayout(3,1,10,10));
 
+        rightPanelIncome = new JPanel();
+        rightPanelIncome.setLayout(new BorderLayout());
 
+        rightPanelExpense = new JPanel();
+        rightPanelExpense.setLayout(new BorderLayout());
 
+        summaryPanel = new JPanel();
+        summaryPanel.setLayout(new BorderLayout());
+        summaryLabel = new JLabel("Summary: ");
+        summaryLabel.setFont(new Font("",Font.BOLD,22));
+        summaryField = new JTextField(20);
+
+        incomeTable = new JTable(null,getColName);
+        expenseTable = new JTable(null,getColName);
+
+        incomeLabel = new JLabel("Income Section: ");
+        incomeLabel.setFont(new Font("",Font.BOLD,20));
+        expenseLabel = new JLabel("Expense Section: ");
+        expenseLabel.setFont(new Font("",Font.BOLD,20));
+        incomeTotalPanel = new JPanel();
+        expenseTotalPanel = new JPanel();
+
+        rightPanelIncome.add(incomeLabel, BorderLayout.NORTH);
+        rightPanelIncome.add(incomeTable, BorderLayout.CENTER);
+        rightPanelIncome.add(incomeTotalPanel, BorderLayout.SOUTH);
+
+        rightPanelExpense.add(expenseLabel, BorderLayout.NORTH);
+        rightPanelExpense.add(expenseTable, BorderLayout.CENTER);
+        rightPanelExpense.add(expenseTotalPanel, BorderLayout.SOUTH);
+
+        summaryPanel.add(summaryLabel,BorderLayout.WEST);
+        summaryPanel.add(summaryField,BorderLayout.CENTER);
+
+        rightPanel.add(rightPanelIncome);
+        rightPanel.add(rightPanelExpense);
+        rightPanel.add(summaryPanel);
 
         //setting layout and adding the panels into main panel.
         setLayout(new GridLayout(1, 2, 20, 0));
@@ -169,10 +231,6 @@ public class MoneyPlanner extends JPanel implements ActionListener {
 
         leftPanel.add(leftPanelTop);
         leftPanel.add(scrollPane);
-
-        //right panel
-
-
 
         //add components into main panel
         add(leftPanel);
@@ -291,7 +349,31 @@ public class MoneyPlanner extends JPanel implements ActionListener {
             day_btn[i].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    String[] date = e.getSource().toString().substring(20, 30).split(",");
+                    String key = date[0] +","+date[1]+","+date[2];
+                    int[] dateInt = new int[3];
 
+                    for (int i = 0; i < 3; i++) {
+                        dateInt[i] = Integer.parseInt(date[i]);
+
+                    }
+
+                    LocalDate changedDate = LocalDate.of(dateInt[0], dateInt[1], dateInt[2]);
+
+                    //for updating of selected date in add_submit panel
+                    add_submit_pan.removeAll();
+                    add_submit_pan.add(currentDateLabel);
+                    add_submit_pan.add(addBtn);
+                    add_submit_pan.add(submitBtn);
+                    add_submit_pan.updateUI();
+
+                    //clearing of left panel bottom.
+                    leftPanelBottom.removeAll();
+
+                    //updating calendar.
+                    leftPanelTop.removeAll();
+                    calendar(changedDate);
+                    leftPanelTop.updateUI();
                 }
             });
             day_btn[i].setFont(day_font);
@@ -396,7 +478,7 @@ public class MoneyPlanner extends JPanel implements ActionListener {
             }
         });
         inputPanel.add(deleteBtn);
-
+        inputPanel.setBackground(Color.BLUE);
         leftPanelBottom.add(inputPanel);
     }
 
@@ -437,15 +519,19 @@ public class MoneyPlanner extends JPanel implements ActionListener {
 
     }
     void refresh(JPanel panel){
-        panel.remove(3);
-        panel.remove(2);
-        panel.remove(1);
+        System.out.println(choice1.getSelectedItem().toString());
+
         if(choice1.getSelectedItem().equals("Income")) {
             choice2 = new JComboBox<>(incomeList);
         }else {
             choice2 = new JComboBox<String>(expenseList);
         }
         choice2.setFont(new Font("",Font.BOLD,15));
+        panel.remove(4);
+        panel.remove(3);
+        panel.remove(2);
+        panel.remove(1);
+//        panel.add(choice1);
         panel.add(choice2);
         panel.add(textField);
         panel.add(saveBtn);
@@ -470,6 +556,14 @@ public class MoneyPlanner extends JPanel implements ActionListener {
                 System.out.println("submit button clicked");
                 String key = selectedDate.getYear() + "," + selectedDate.getMonth().getValue() + "," + selectedDate.getDayOfMonth();
                 savedData.put(key, dataVal);
+                leftPanelBottom.removeAll();
+                leftPanelBottom.updateUI();
+                for(int i = 0; i < savedData.get(key).size();i++){
+                    for(int j = 0; j < 3; j++){
+                        System.out.print(savedData.get(key).get(i)[j] + ", ");
+                    }
+                    System.out.print("\n");
+                }
 
 //            System.out.println(dataManagement.get(key).keySet() + dataManagement.get(key).values().toString());
             }else if(e.getSource().equals(todayBtn)){
